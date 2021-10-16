@@ -176,6 +176,7 @@ namespace ModelCompiler
                 string[] excludeCategories = null;
                 bool includeDisplayNames = false;
                 bool useAllowSubtypes = false;
+                bool createOutputDirectory = false;
 
                 bool updateHeaders = false;
                 string inputDirectory = ".";
@@ -223,28 +224,6 @@ namespace ModelCompiler
 
                         updateHeaders = true;
                         licenseType = (HeaderUpdateTool.LicenseType)Enum.Parse(typeof(HeaderUpdateTool.LicenseType), tokens[++ii]);
-                        continue;
-                    }
-
-                    if (tokens[ii] == "-d2")
-                    {
-                        if (ii >= tokens.Count - 1)
-                        {
-                            throw new ArgumentException("Incorrect number of parameters specified with the -d2 option.");
-                        }
-
-                        designFiles.Add(tokens[++ii]);
-                        continue;
-                    }
-
-                    if (tokens[ii] == "-d2")
-                    {
-                        if (ii >= tokens.Count - 1)
-                        {
-                            throw new ArgumentException("Incorrect number of parameters specified with the -d2 option.");
-                        }
-
-                        designFiles.Add(tokens[++ii]);
                         continue;
                     }
 
@@ -361,6 +340,12 @@ namespace ModelCompiler
                         useAllowSubtypes = true;
                         continue;
                     }
+
+                    if (tokens[ii] == "-createDir" || tokens[ii] == "-cd")
+					{
+                        createOutputDirectory = true;
+                        continue;
+					}
                 }
 
                 if (updateHeaders)
@@ -406,6 +391,16 @@ namespace ModelCompiler
                     specificationVersion,
                     useAllowSubtypes);
 
+                if (createOutputDirectory)
+				{
+                    var outputDirInfo = new DirectoryInfo(outputDir);
+
+                    if (!outputDirInfo.Exists)
+                    {
+                        outputDirInfo.Create();
+                    }
+                }
+
                 if (!String.IsNullOrEmpty(stackRootDir))
                 {
                     if (!new DirectoryInfo(stackRootDir).Exists)
@@ -429,6 +424,11 @@ namespace ModelCompiler
 
                 if (!String.IsNullOrEmpty(outputDir))
                 {
+                    if (!new DirectoryInfo(outputDir).Exists)
+					{
+                        throw new ArgumentException("The directory does not exist: " + outputDir);
+					}
+
                     if (generateMultiFile)
                     {
                         generator.GenerateMultipleFiles(outputDir, useXmlInitializers, excludeCategories, includeDisplayNames);
